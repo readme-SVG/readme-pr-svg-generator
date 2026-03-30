@@ -1,0 +1,8 @@
+{
+  "name": "github-pr-svg-generator",
+  "version": "1.0.0",
+  "description": "Dynamic SVG badge for GitHub Pull Requests",
+  "scripts": {
+    "start": "node api/badge.js"
+  }
+}
