@@ -1,45 +1,406 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub PR Stats Generator</title>
+    <title>GitHub PR SVG Generator</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background-color: #0d1117; color: #c9d1d9; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: #161b22; padding: 30px; border-radius: 8px; border: 1px solid #30363d; text-align: center; max-width: 900px; width: 100%; box-sizing: border-box; }
-        input { padding: 8px 12px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; margin-right: 10px; width: 200px; }
-        button { padding: 8px 16px; background: #238636; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #2ea043; }
-        .preview { margin-top: 30px; overflow-x: auto; }
-        code { display: block; margin-top: 15px; background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid #30363d; user-select: all; word-break: break-all; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Top Bar --- */
+        .topbar {
+            width: 100%;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .topbar-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f0f6fc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .topbar-title svg { fill: #c9d1d9; }
+        .lang-select {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .lang-select:focus { border-color: #58a6ff; outline: none; }
+
+        /* --- Main Container --- */
+        .main {
+            width: 100%;
+            max-width: 960px;
+            padding: 32px 24px;
+        }
+        .page-heading {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 8px;
+        }
+        .page-desc {
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* --- Card --- */
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .card-header {
+            padding: 16px;
+            border-bottom: 1px solid #30363d;
+            font-weight: 600;
+            font-size: 14px;
+            color: #f0f6fc;
+        }
+        .card-body { padding: 16px; }
+
+        /* --- Form Controls (GitHub Primer style) --- */
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #c9d1d9;
+            margin-bottom: 6px;
+        }
+        .form-hint {
+            font-size: 12px;
+            color: #8b949e;
+            margin-bottom: 6px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 5px 12px;
+            font-size: 14px;
+            line-height: 20px;
+            color: #c9d1d9;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .form-control:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,0.15); }
+        select.form-control { cursor: pointer; appearance: auto; }
+
+        /* --- Inline form row --- */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .form-row .form-group { flex: 1; min-width: 140px; }
+
+        /* --- Checkbox group --- */
+        .checkbox-group { display: flex; gap: 16px; flex-wrap: wrap; }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #c9d1d9;
+            cursor: pointer;
+        }
+        .checkbox-label input[type="checkbox"] {
+            accent-color: #238636;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* --- Preview --- */
+        .preview-area {
+            overflow-x: auto;
+            padding: 16px 0;
+        }
+        .preview-area img { max-width: 100%; height: auto; }
+
+        /* --- Markdown snippet --- */
+        .snippet-wrapper {
+            position: relative;
+            margin-top: 12px;
+        }
+        .snippet-code {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            padding-right: 100px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+        .btn-copy {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #c9d1d9;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s;
+        }
+        .btn-copy:hover { background: #30363d; }
+        .btn-copy.copied { background: #238636; border-color: #238636; color: #fff; }
+        .btn-copy svg { fill: currentColor; }
+
+        /* --- Footer --- */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: #484f58;
+        }
+        .footer a { color: #58a6ff; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Детальная статистика Pull Requests</h2>
-        <div>
-            <input type="text" id="username" placeholder="GitHub Username" value="OstinUA">
-            <button onclick="generate()">Сгенерировать</button>
-        </div>
-        <div class="preview">
-            <img id="badge" src="/api/badge?username=OstinUA" alt="PR Stats" style="max-width: 100%;">
-        </div>
-        <div>
-            <p>Markdown код для README.md:</p>
-            <code id="markdown">[![PRs](https://твой-домен.vercel.app/api/badge?username=OstinUA)](https://github.com/pulls?q=is:pr+author:OstinUA)</code>
+
+<!-- Top Bar -->
+<div class="topbar">
+    <div class="topbar-title">
+        <svg height="20" width="20" viewBox="0 0 16 16"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 01-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.26-1.24-.55-1.49 1.79-.2 3.67-.88 3.67-3.97 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.07 1.87 3.75 3.65 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 010 8c0-4.42 3.58-8 8-8z"></path></svg>
+        <span data-i18n="topbar_title">PR SVG Generator</span>
+    </div>
+    <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+        <option value="en">EN</option>
+        <option value="ru">RU</option>
+    </select>
+</div>
+
+<!-- Main -->
+<div class="main">
+    <h1 class="page-heading" data-i18n="page_heading">Pull Request SVG Badge Generator</h1>
+    <p class="page-desc" data-i18n="page_desc">Generate a dynamic SVG image showing recent pull requests for any GitHub user. Embed it in your README.</p>
+
+    <!-- Username Card -->
+    <div class="card">
+        <div class="card-header" data-i18n="card_config">Configuration</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="username" data-i18n="label_username">GitHub Username</label>
+                    <input class="form-control" type="text" id="username" placeholder="e.g. OstinUA" value="OstinUA">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="limit" data-i18n="label_limit">PR Limit</label>
+                    <select class="form-control" id="limit">
+                        <option value="3">3</option>
+                        <option value="5" selected>5</option>
+                        <option value="7">7</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="theme" data-i18n="label_theme">SVG Theme</label>
+                    <select class="form-control" id="theme">
+                        <option value="dark" data-i18n-option="theme_dark">Dark</option>
+                        <option value="light" data-i18n-option="theme_light">Light</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        function generate() {
-            const username = document.getElementById('username').value || 'OstinUA';
-            const domain = window.location.origin;
-            const badgeUrl = `${domain}/api/badge?username=${username}`;
-            const targetUrl = `https://github.com/pulls?q=is:pr+author:${username}`;
-            
-            document.getElementById('badge').src = badgeUrl;
-            document.getElementById('markdown').innerText = `[![PRs](${badgeUrl})](${targetUrl})`;
-        }
-    </script>
+    <!-- Settings Card -->
+    <div class="card">
+        <div class="card-header" data-i18n="card_display">Display Options</div>
+        <div class="card-body">
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDate" checked>
+                    <span data-i18n="opt_date">Show Dates</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showComments" checked>
+                    <span data-i18n="opt_comments">Show Comments</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Card -->
+    <div class="card">
+        <div class="card-header" data-i18n="card_preview">Preview</div>
+        <div class="card-body">
+            <div class="preview-area">
+                <img id="badge" src="/api/badge?username=OstinUA" alt="PR Stats">
+            </div>
+
+            <label class="form-label" data-i18n="label_markdown">Markdown for your README</label>
+            <div class="snippet-wrapper">
+                <code class="snippet-code" id="markdown"></code>
+                <button class="btn-copy" id="copyBtn" onclick="copyMarkdown()">
+                    <svg width="14" height="14" viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path></svg>
+                    <span data-i18n="btn_copy">Copy</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <span data-i18n="footer_text">Powered by</span> <a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a> &middot; <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener">GitHub API</a>
+</div>
+
+<script>
+// --- i18n ---
+const i18n = {
+    en: {
+        topbar_title: 'PR SVG Generator',
+        page_heading: 'Pull Request SVG Badge Generator',
+        page_desc: 'Generate a dynamic SVG image showing recent pull requests for any GitHub user. Embed it in your README.',
+        card_config: 'Configuration',
+        label_username: 'GitHub Username',
+        label_limit: 'PR Limit',
+        label_theme: 'SVG Theme',
+        theme_dark: 'Dark',
+        theme_light: 'Light',
+        card_display: 'Display Options',
+        opt_date: 'Show Dates',
+        opt_comments: 'Show Comments',
+        card_preview: 'Preview',
+        label_markdown: 'Markdown for your README',
+        btn_copy: 'Copy',
+        btn_copied: 'Copied!',
+        footer_text: 'Powered by',
+    },
+    ru: {
+        topbar_title: 'PR SVG Генератор',
+        page_heading: 'Генератор SVG-бейджа Pull Requests',
+        page_desc: 'Создайте динамическое SVG-изображение с последними Pull Requests любого пользователя GitHub для вашего README.',
+        card_config: 'Настройки',
+        label_username: 'Имя пользователя GitHub',
+        label_limit: 'Лимит PR',
+        label_theme: 'Тема SVG',
+        theme_dark: 'Тёмная',
+        theme_light: 'Светлая',
+        card_display: 'Параметры отображения',
+        opt_date: 'Показать даты',
+        opt_comments: 'Показать комментарии',
+        card_preview: 'Предпросмотр',
+        label_markdown: 'Markdown для вашего README',
+        btn_copy: 'Копировать',
+        btn_copied: 'Скопировано!',
+        footer_text: 'Работает на',
+    },
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    const dict = i18n[lang] || i18n.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key] != null) el.textContent = dict[key];
+    });
+    // Translate select options
+    document.querySelectorAll('[data-i18n-option]').forEach(el => {
+        const key = el.getAttribute('data-i18n-option');
+        if (dict[key] != null) el.textContent = dict[key];
+    });
+    localStorage.setItem('pr-svg-lang', lang);
+}
+
+// --- Debounced badge update ---
+let debounceTimer = null;
+
+function updateBadge() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        const username = document.getElementById('username').value.trim() || 'OstinUA';
+        const limit = document.getElementById('limit').value;
+        const theme = document.getElementById('theme').value;
+        const showDate = document.getElementById('showDate').checked;
+        const showComments = document.getElementById('showComments').checked;
+        const domain = window.location.origin;
+
+        const params = new URLSearchParams({ username, limit, theme });
+        if (!showDate) params.set('showDate', 'false');
+        if (!showComments) params.set('showComments', 'false');
+
+        const badgeUrl = `${domain}/api/badge?${params.toString()}`;
+        const targetUrl = `https://github.com/pulls?q=is:pr+author:${encodeURIComponent(username)}`;
+
+        document.getElementById('badge').src = badgeUrl;
+        document.getElementById('markdown').textContent = `[![PRs](${badgeUrl})](${targetUrl})`;
+    }, 400);
+}
+
+// --- Copy to clipboard ---
+function copyMarkdown() {
+    const text = document.getElementById('markdown').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const span = btn.querySelector('span');
+        const dict = i18n[currentLang] || i18n.en;
+        btn.classList.add('copied');
+        span.textContent = dict.btn_copied;
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            span.textContent = dict.btn_copy;
+        }, 2000);
+    });
+}
+
+// --- Init ---
+document.getElementById('username').addEventListener('input', updateBadge);
+document.getElementById('limit').addEventListener('change', updateBadge);
+document.getElementById('theme').addEventListener('change', updateBadge);
+document.getElementById('showDate').addEventListener('change', updateBadge);
+document.getElementById('showComments').addEventListener('change', updateBadge);
+
+// Restore language preference
+const savedLang = localStorage.getItem('pr-svg-lang') || 'en';
+document.getElementById('langSelect').value = savedLang;
+setLanguage(savedLang);
+
+// Initial badge load
+updateBadge();
+</script>
 </body>
 </html>
