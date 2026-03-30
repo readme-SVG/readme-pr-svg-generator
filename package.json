@@ -1,8 +1,11 @@
 {
   "name": "github-pr-svg-generator",
-  "version": "1.0.0",
-  "description": "Dynamic SVG badge for GitHub Pull Requests",
+  "version": "2.0.0",
+  "description": "Dynamic SVG badge for GitHub Pull Requests with theming, i18n, and customizable display options",
   "scripts": {
-    "start": "node api/badge.js"
+    "start": "npx vercel dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
