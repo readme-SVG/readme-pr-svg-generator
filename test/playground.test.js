@@ -27,3 +27,19 @@ describe('localization', () => {
     assert.equal(resolveInitialLanguage(emptyStorage, 'ru-RU'), 'ru');
   });
 });
+
+describe('theme styling', () => {
+  it('defines a stylesheet palette for every theme the API exposes', async () => {
+    const [{ readFile }, { THEME_IDS, DEFAULT_THEME_ID }] = await Promise.all([
+      import('node:fs/promises'),
+      import('../lib/themes.js'),
+    ]);
+
+    const css = await readFile(new URL('../public/styles.css', import.meta.url), 'utf8');
+
+    for (const id of THEME_IDS) {
+      if (id === DEFAULT_THEME_ID) continue; // The default palette lives on :root.
+      assert.ok(css.includes(`[data-theme="${id}"]`), `styles.css is missing a palette for ${id}`);
+    }
+  });
+});

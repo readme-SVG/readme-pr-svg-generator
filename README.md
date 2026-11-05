@@ -71,9 +71,11 @@ platform parity.
 | `GITHUB_TOKEN` | No       | Raises the GitHub rate limit. A read-only token is sufficient.      |
 
 Without a token the unauthenticated Search API allows 10 requests per minute per
-IP. Responses are cached for five minutes and concurrent lookups for the same
-login are coalesced into one request, so ordinary traffic stays well inside that
-budget; a token is recommended if the badge appears in a high-traffic README.
+IP. Successful lookups are cached for five minutes, concurrent lookups for the
+same login are coalesced into a single request, and failures are remembered for
+30 seconds so an outage does not turn every badge impression into another
+upstream call. A token is recommended if the badge appears in a high-traffic
+README.
 
 ## Design notes
 

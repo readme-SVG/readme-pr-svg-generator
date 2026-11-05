@@ -14,13 +14,13 @@ import { DEMO_PULL_REQUESTS, LIMIT, parseBadgeOptions } from '../lib/options.js'
 import { renderBadge, renderNotice } from '../lib/svg.js';
 
 /** Successful render: cached at the edge, revalidated in the background. */
-const SUCCESS_CACHE = Object.freeze({ immutable: false, maxAge: 1800, staleWhileRevalidate: 86_400 });
+const SUCCESS_CACHE = Object.freeze({ maxAge: 1800, staleWhileRevalidate: 86_400 });
 
 /** Failure render: never cached, so a transient outage heals immediately. */
-const FAILURE_CACHE = Object.freeze({ immutable: false, maxAge: 0, staleWhileRevalidate: 0 });
+const FAILURE_CACHE = Object.freeze({ maxAge: 0, staleWhileRevalidate: 0 });
 
-/** Fixture render: static content, safe to cache aggressively. */
-const DEMO_CACHE = Object.freeze({ immutable: false, maxAge: 300, staleWhileRevalidate: 3600 });
+/** Fixture render: static content, safe to cache for a short while. */
+const DEMO_CACHE = Object.freeze({ maxAge: 300, staleWhileRevalidate: 3600 });
 
 /** User facing copy for each upstream failure. */
 const ERROR_COPY = Object.freeze({

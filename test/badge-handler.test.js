@@ -107,7 +107,7 @@ describe('badge handler', () => {
     await handler(createRequest({ username: 'octocat' }), res);
 
     assert.equal(res.statusCode, 200);
-    assert.match(res.headers['Cache-Control'], /max-age=0/);
+    assert.equal(res.headers['Cache-Control'], 'no-store');
     assert.match(res.body, /rate limit/i);
   });
 
@@ -168,5 +168,30 @@ describe('badge handler', () => {
 
     assert.equal(globalThis.fetch.mock.callCount(), 0);
     assert.match(res.body, /Add streaming support/);
+  });
+});
+
+describe('badge handler failure handling', () => {
+  it('does not re-query GitHub while a failure is cached', async () => {
+    const fetchMock = mock.fn(async () => new Response('{}', { status: 403 }));
+    globalThis.fetch = fetchMock;
+
+    await handler(createRequest({ username: 'octocat' }), createResponse());
+    await handler(createRequest({ username: 'octocat' }), createResponse());
+
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
+
+  it('serves an explanatory badge when GitHub is unreachable', async () => {
+    globalThis.fetch = mock.fn(async () => {
+      throw new TypeError('fetch failed');
+    });
+
+    const res = createResponse();
+    await handler(createRequest({ username: 'octocat' }), res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.headers['Cache-Control'], 'no-store');
+    assert.match(res.body, /currently unavailable/);
   });
 });
