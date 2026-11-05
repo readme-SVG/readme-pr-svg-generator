@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="Generate an embeddable SVG badge that lists your most recent GitHub pull requests."
+    />
+    <title>PR SVG Generator · Embeddable pull request badge</title>
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://api.github.com" crossorigin />
+    <link rel="modulepreload" href="/js/app.js" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-header__inner">
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8a8.013 8.013 0 0 0 5.47 7.59c.4.074.55-.174.55-.386 0-.19-.007-.693-.01-1.36-2.23.484-2.7-1.075-2.7-1.075-.365-.927-.89-1.174-.89-1.174-.727-.497.055-.487.055-.487.804.057 1.227.826 1.227.826.715 1.225 1.875.871 2.33.666.073-.518.28-.871.51-1.071-1.78-.203-3.65-.89-3.65-3.96 0-.875.313-1.59.826-2.15-.083-.203-.358-1.02.078-2.125 0 0 .673-.215 2.2.82A7.66 7.66 0 0 1 8 3.868a7.7 7.7 0 0 1 2.005.27c1.526-1.035 2.198-.82 2.198-.82.437 1.105.162 1.922.08 2.125.514.56.824 1.275.824 2.15 0 3.078-1.874 3.755-3.66 3.954.288.247.545.735.545 1.481 0 1.07-.01 1.933-.01 2.196 0 .214.145.463.553.385A8.015 8.015 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+            />
+          </svg>
+          <span data-i18n="app.title">PR SVG Generator</span>
+          <span class="brand__tagline" data-i18n="app.tagline">
+            Embeddable pull request badge for GitHub profiles
+          </span>
+        </div>
+
+        <div class="app-header__actions">
+          <label class="visually-hidden" for="language">Language</label>
+          <select class="control control--compact" id="language">
+            <option value="en">EN</option>
+            <option value="ru">RU</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1 class="hero__title" data-i18n="hero.heading">Pull request badge for your README</h1>
+        <p class="hero__body" data-i18n="hero.body">
+          Renders your most recent pull requests as a self-contained SVG. No client-side
+          JavaScript, no tracking, cached at the edge.
+        </p>
+      </section>
+
+      <div class="layout">
+        <aside class="layout__aside">
+          <form class="card" id="config-form" novalidate>
+            <div class="card__header">
+              <span data-i18n="config.heading">Configuration</span>
+            </div>
+
+            <div class="card__body">
+              <div class="field">
+                <label class="field__label" for="username" data-i18n="config.username">
+                  GitHub username
+                </label>
+                <input
+                  class="control"
+                  id="username"
+                  name="username"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  maxlength="39"
+                  placeholder="octocat"
+                  aria-describedby="username-hint form-error"
+                />
+                <span class="field__hint" id="username-hint" data-i18n="config.usernameHint">
+                  Letters, digits and hyphens. Case insensitive.
+                </span>
+                <span class="field__error" id="form-error" role="alert" hidden></span>
+              </div>
+
+              <div class="field-row field--spaced">
+                <div class="field">
+                  <label class="field__label" for="limit" data-i18n="config.limit">
+                    Pull requests
+                  </label>
+                  <select class="control" id="limit" name="limit">
+                    <option value="3">3</option>
+                    <option value="5" selected>5</option>
+                    <option value="7">7</option>
+                    <option value="10">10</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label class="field__label" for="theme" data-i18n="config.theme">Theme</label>
+                  <select class="control" id="theme" name="theme">
+                    <option value="dark" data-i18n="theme.dark">Dark</option>
+                    <option value="light" data-i18n="theme.light">Light</option>
+                    <option value="dimmed" data-i18n="theme.dimmed">Dimmed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field field--spaced">
+                <span class="field__label" data-i18n="config.display">Display columns</span>
+                <div class="checkbox-group">
+                  <label class="checkbox">
+                    <input type="checkbox" id="show-date" name="showDate" checked />
+                    <span data-i18n="config.showDate">Created date</span>
+                  </label>
+                  <label class="checkbox">
+                    <input type="checkbox" id="show-comments" name="showComments" checked />
+                    <span data-i18n="config.showComments">Comment count</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </aside>
+
+        <div class="layout__main">
+          <section class="card">
+            <div class="card__header">
+              <span data-i18n="preview.heading">Live preview</span>
+              <span class="status-pill" id="preview-status" data-state="idle" role="status" aria-live="polite">Ready</span>
+            </div>
+            <div class="card__body preview">
+              <div class="preview__frame">
+                <img id="preview-image" alt="" width="832" hidden />
+                <p class="preview__placeholder" id="preview-placeholder" data-i18n="preview.empty">
+                  Enter a GitHub username to render the badge.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card__header">
+              <span data-i18n="markdown.heading">Markdown snippet</span>
+            </div>
+            <div class="card__body">
+              <div class="snippet">
+                <code class="snippet__code" id="snippet" tabindex="0"></code>
+                <button class="snippet__copy" id="copy-button" type="button" data-state="idle">
+                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <path
+                      d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25v-7.5Z"
+                    />
+                    <path
+                      d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25v-7.5Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25h-7.5Z"
+                    />
+                  </svg>
+                  <span id="copy-label" data-i18n="markdown.copy">Copy</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <nav>
+        <a
+          href="https://github.com/readme-SVG/readme-pr-svg-generator"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-i18n="footer.source"
+          >Source</a
+        >
+        <a
+          href="https://docs.github.com/en/rest/search/search"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-i18n="footer.api"
+          >GitHub API</a
+        >
+        <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" data-i18n="footer.builtWith"
+          >Deployed on Vercel</a
+        >
+      </nav>
+    </footer>
+
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>
