@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Vercel
+.vercel/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+*.log

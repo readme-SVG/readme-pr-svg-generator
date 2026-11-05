@@ -1,11 +1,17 @@
 {
-  "name": "github-pr-svg-generator",
-  "version": "2.0.0",
-  "description": "Dynamic SVG badge for GitHub Pull Requests with theming, i18n, and customizable display options",
-  "scripts": {
-    "start": "npx vercel dev"
-  },
+  "name": "readme-pr-svg-generator",
+  "version": "2.1.0",
+  "private": true,
+  "description": "Embeddable SVG badge that renders a GitHub user's recent pull requests in a README",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/dev.mjs",
+    "vercel:dev": "vercel dev",
+    "test": "node --test \"test/**/*.test.js\""
   }
 }
